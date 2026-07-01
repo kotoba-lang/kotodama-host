@@ -95,7 +95,7 @@ try {
 ## Tests
 
 ```
-$ vitest run 20-actors/kotoba-kotodama/sdk/kotoba-kotodama-host-sdk/test/langserver-actor.test.ts
+$ vitest run sdk/kotodama-host-sdk/test/langserver-actor.test.ts
 Test Files  1 passed (1)
      Tests  12 passed (12)
 ```

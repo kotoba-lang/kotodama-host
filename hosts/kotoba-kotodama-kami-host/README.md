@@ -12,16 +12,16 @@ Native KAMI host with:
 Update golden screenshots:
 
 ```bash
-cargo run --manifest-path 20-actors/kotoba-kotodama/hosts/kotoba-kotodama-kami-host/Cargo.toml -- \
-  --update-golden 20-actors/kotoba-kotodama/hosts/kotoba-kotodama-kami-host/golden \
+cargo run --manifest-path hosts/kotoba-kotodama-kami-host/Cargo.toml -- \
+  --update-golden hosts/kotoba-kotodama-kami-host/golden \
   --artifact-dir /tmp/kotoba-kotodama-kami-golden-update
 ```
 
 Verify screenshots and UI/UX score:
 
 ```bash
-cargo run --manifest-path 20-actors/kotoba-kotodama/hosts/kotoba-kotodama-kami-host/Cargo.toml -- \
-  --verify-golden 20-actors/kotoba-kotodama/hosts/kotoba-kotodama-kami-host/golden \
+cargo run --manifest-path hosts/kotoba-kotodama-kami-host/Cargo.toml -- \
+  --verify-golden hosts/kotoba-kotodama-kami-host/golden \
   --min-uiux-score 85 \
   --artifact-dir /tmp/kotoba-kotodama-kami-golden-verify
 ```
@@ -29,7 +29,7 @@ cargo run --manifest-path 20-actors/kotoba-kotodama/hosts/kotoba-kotodama-kami-h
 Run headless sample only:
 
 ```bash
-cargo run --manifest-path 20-actors/kotoba-kotodama/hosts/kotoba-kotodama-kami-host/Cargo.toml -- \
+cargo run --manifest-path hosts/kotoba-kotodama-kami-host/Cargo.toml -- \
   --headless \
   --artifact-dir /tmp/kotoba-kotodama-kami-headless
 ```

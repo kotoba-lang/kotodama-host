@@ -4,7 +4,7 @@
  *
  * App-facing entry point: `await sdk.derive.emit(collection, record, self)`.
  *
- * See 40-engine/kotoba/crates/kotoba-kotodama/CLAUDE.md §Direct Async RPC — apps write domain data
+ * See kotoba-lang/kotoba:crates/kotoba-kotodama/CLAUDE.md §Direct Async RPC — apps write domain data
  * via Kysely/sdk.pds.createRecord directly; only social posts go through PDS.
  * This module lives in host-sdk so the derive engine is co-located with the
  * write path, not a post-commit hook on the PDS side (which would be bypassed).

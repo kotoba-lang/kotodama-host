@@ -316,7 +316,7 @@ export class App {
   // F-Plan F2 (2026-04-13): `command` / `query` are now strictly typed. The NSID must
   // exist as a lexicon procedure / query in 00-contracts/lexicons/. Legacy loose
   // AssertCommandNSID / AssertQueryNSID paths were archived on 2026-04-13 — see
-  // _archive/40-engine/kotoba/crates/kotoba-kotodama/sdk/kotodama-host-sdk-legacy-nsid-assert-260413/.
+  // _archive/kotoba-lang/kotodama-host:sdk/kotodama-host-sdk-legacy-nsid-assert-260413/.
   //
   // Apps that use template-literal NSIDs or short non-AT-Protocol NSIDs need to either
   // (a) create the corresponding lexicon JSON and regenerate gen-lexicon-nsid-types.mjs,

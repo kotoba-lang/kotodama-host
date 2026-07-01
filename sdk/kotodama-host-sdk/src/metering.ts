@@ -15,7 +15,7 @@
 //      and for `com.etzhayyim.apps.billing.*` calls (avoid recursion).
 //
 // Pricing & cost registries are kept server-side in
-// `40-engine/kotoba/crates/kotoba-kotodama/py/src/kotodama/primitives/billing.py` (the
+// `kotoba-lang/kotodama-py/src/kotodama/primitives/billing.py` (the
 // authoritative SSoT). Worker-side this module ships only the list price
 // in JPY-micro because the unit cost is etzhayyim-internal and not relevant
 // to the row written from a customer Worker (the billing primitive
