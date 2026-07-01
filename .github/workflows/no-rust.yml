@@ -1,0 +1,20 @@
+name: No Rust
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  no-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ensure Rust runtime files stay out
+        run: |
+          if find . \
+            \( -name Cargo.toml -o -name Cargo.lock -o -name '*.rs' -o -name 'rust-toolchain*' \) \
+            -print -quit | grep -q .; then
+            find . \( -name Cargo.toml -o -name Cargo.lock -o -name '*.rs' -o -name 'rust-toolchain*' \) -print
+            exit 1
+          fi
