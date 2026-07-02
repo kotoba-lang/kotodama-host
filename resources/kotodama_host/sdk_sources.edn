@@ -1,0 +1,11 @@
+#:kotodama.host.sdk{:source-catalog :sdk-source-catalog,
+                    :authority [:kotoba-clj :edn],
+                    :sdk-root "sdk/kotodama-host-sdk",
+                    :source-root "src",
+                    :default-policy :cljc-authority-only,
+                    :sources
+                    [#:kotodama.host.sdk{:path
+                                         "src/host-contract.cljc",
+                                         :language :cljc,
+                                         :role :generated-adapter,
+                                         :authority? true}]}

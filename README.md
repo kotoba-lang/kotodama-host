@@ -4,9 +4,9 @@ Host runtimes and SDK surface for Kotodama.
 
 This repository owns:
 
-- TypeScript host SDK used by Kotodama-capable runtimes
-- host-facing contracts and browser/runtime integration surfaces that are not
-  owned by the portable inference layer
+- EDN host component boundaries
+- CLJC validation for actor lifecycle, dispatch, config, and SDK facade shapes
+- checked WIT artifacts generated from EDN/CLJC authority
 
 It does not own the portable inference runtime. Inference lives in
 `kotoba-lang/inference`.
