@@ -33,13 +33,13 @@
 (deftest component-wit-artifact
   (testing "emits WIT from the EDN/CLJC host boundary"
     (let [wit (contract/host-wit)]
-      #?(:clj (is (= (slurp (io/file "wit" "kotodama-host.wit")) wit)))
+      (is (= (slurp (io/file "wit" "kotodama-host.wit")) wit))
       (is (re-find #"world kotodama-host" wit))
       (is (re-find #"export actor-dispatch" wit))
       (is (re-find #"import host-audit-sink" wit))))
   (testing "does not emit WIT for invalid provider-owned boundaries"
     (is (thrown-with-msg?
-         #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+         clojure.lang.ExceptionInfo
          #"cannot emit WIT"
          (contract/boundary->wit
           {:kotodama.host/world :kotodama/host
