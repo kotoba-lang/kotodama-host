@@ -5,7 +5,7 @@
   EDN/.cljc authority. Legacy Rust hosts and TypeScript SDK artifacts are not
   part of the runtime contract."
   (:require [clojure.set :as set]
-            [clojure.string :as string]
+            [kotoba.lang.text :as string]
             #?(:clj [clojure.edn :as edn])
             #?(:clj [clojure.java.io :as io])))
 
