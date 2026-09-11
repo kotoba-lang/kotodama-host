@@ -4,13 +4,13 @@
                 :providers
                 [#:kotodama.host{:provider :desktop-host,
                                  :path
-                                 "src/kotodama/host_contract.cljc",
+                                 "src/kotodama/host_contract.cljk",
                                  :language :cljc,
                                  :role :component-provider,
                                  :world :kotodama/host}
                  #:kotodama.host{:provider :kami-host,
                                  :path
-                                 "src/kotodama/host_contract.cljc",
+                                 "src/kotodama/host_contract.cljk",
                                  :language :cljc,
                                  :role :component-provider,
                                  :world :kotodama/host}
@@ -22,7 +22,7 @@
                                  :world :kotodama/host}
                  #:kotodama.host{:provider :sdk-facade,
                                  :path
-                                 "sdk/kotodama-host-sdk/src/host-contract.cljc",
+                                 "sdk/kotodama-host-sdk/src/host-contract.cljk",
                                  :language :cljc,
                                  :role :facade,
                                  :world :kotodama/host}]}
