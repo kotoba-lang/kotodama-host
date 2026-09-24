@@ -1,6 +1,6 @@
 (ns kotodama.host-contract-test
   (:require [clojure.java.io :as io]
-            [clojure.test :refer [deftest is testing]]
+            [kotoba.test :refer [deftest is testing]]
             [kotodama.host-contract :as contract]))
 
 (defn- file-exists? [& parts]
