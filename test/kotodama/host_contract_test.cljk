@@ -1,10 +1,10 @@
 (ns kotodama.host-contract-test
-  (:require [clojure.java.io :as io]
+  (:require [kotoba.lang.error :as kerror] [kotoba.io :as io]
             [kotoba.test :refer [deftest is testing]]
             [kotodama.host-contract :as contract]))
 
 (defn- file-exists? [& parts]
-  (.exists (apply io/file parts)))
+  (io/exists? (apply io/file parts)))
 
 (deftest component-host-boundary
   (testing "validates the kotoba-clj authority boundary for host providers"
@@ -39,7 +39,7 @@
       (is (re-find #"import host-audit-sink" wit))))
   (testing "does not emit WIT for invalid provider-owned boundaries"
     (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo
+         kerror/ExceptionInfo
          #"cannot emit WIT"
          (contract/boundary->wit
           {:kotodama.host/world :kotodama/host

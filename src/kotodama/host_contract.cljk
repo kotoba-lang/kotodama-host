@@ -7,7 +7,7 @@
   (:require [kotoba.lang.coll :as set]
             [kotoba.lang.text :as string]
             #?(:clj [kotoba.lang.edn :as edn])
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (def boundary-resource
   "kotodama.host component boundary EDN authority."
@@ -578,17 +578,17 @@
             source-dir (io/file repo-root sdk-root source-root)
             cataloged (set (map :kotodama.host.sdk/path
                                 (:kotodama.host.sdk/sources catalog)))
-            existing (if (.exists source-dir)
-                       (->> (.listFiles source-dir)
-                            (filter #(.isFile %))
-                            (map #(.getName %))
+            existing (if (io/exists? source-dir)
+                       (->> (io/list-files source-dir)
+                            (filter #(io/file? %))
+                            (map #(io/file-name %))
                             (filter #(string/ends-with? % ".cljc"))
                             (map #(str source-root "/" %))
                             set)
                        #{})]
         (vec
          (collect-errors
-          (when-not (.exists source-dir)
+          (when-not (io/exists? source-dir)
             {:path (str sdk-root "/" source-root) :problem :missing-source-root})
           (for [path (sort (set/difference cataloged existing))]
             {:path path :problem :missing-cataloged-source})
@@ -600,9 +600,9 @@
      "Return Rust/TypeScript/Node artifacts that should not exist after the
      CLJC/EDN host migration."
      []
-     (->> (file-seq (io/file "."))
-          (filter #(.isFile %))
-          (map #(.getPath %))
+     (->> (io/file-seq (io/file "."))
+          (filter #(io/file? %))
+          (map #(io/path %))
           (remove #(string/includes? % "/.git/"))
           (remove #(string/includes? % "/node_modules/"))
           (remove #(string/includes? % "/target/"))
@@ -611,11 +611,11 @@
                        (string/ends-with? % ".tsx")
                        (string/ends-with? % ".js")
                        (string/ends-with? % ".mjs")
-                       (= "Cargo.toml" (.getName (io/file %)))
-                       (= "Cargo.lock" (.getName (io/file %)))
-                       (= "package.json" (.getName (io/file %)))
-                       (= "package-lock.json" (.getName (io/file %)))
-                       (= "tsconfig.json" (.getName (io/file %)))))
+                       (= "Cargo.toml" (io/file-name (io/file %)))
+                       (= "Cargo.lock" (io/file-name (io/file %)))
+                       (= "package.json" (io/file-name (io/file %)))
+                       (= "package-lock.json" (io/file-name (io/file %)))
+                       (= "tsconfig.json" (io/file-name (io/file %)))))
           (map #(string/replace-first % #"^\./" ""))
           sort
           vec)))
