@@ -27,19 +27,25 @@ bundle で hono 等の依存を解決できるように、**このディレク�
 この package.json の `workspace:*` は旧 monorepo の pnpm workspace を前提とし、
 split 後は解決できない。依存 5 件の現世の候補は:
 
-| 依存 | 候補（west シブリング） | 状態 |
-|---|---|---|
-| `@etzhayyim/sdk` | `kotoba-lang/sdk`（name 一致確認済み） | 配線可 |
-| `@etzhayyim/did-etzhayyim` | `kotoba-lang/did-etzhayyim`（同） | 配線可 |
-| `@etzhayyim/xrpc` | `kotoba-lang/xrpc`（同） | 配線可 |
-| `@etzhayyim/graph-schema` | — | **home 未確認（要調査）** |
-| `@etzhayyim/kami-engine-sdk` | `kotoba-lang/kami-engine-app-sdk` 候補 | **name 未確認** |
+### 判定（実測 2026-10-19）
 
-配線方針: `workspace:*` → `file:../../../<repo>` への差し替え（この復元からの
-唯一の既定変更として package.json に書く）。全 5 件の home 確定が済んだら
-適用する。**それまで `npm install` / `pnpm install` は失敗する（実測:
-`Unsupported URL Type "workspace:"`）** — これは復元の欠陥ではなく、
-split と CLJC 移行が両方未完了であることの測定値。
+**kotoba / amu selfhost（kototama-browser-host、browser-host.mjs）への参照は
+ゼロ**（kotoba/src・amu/src・amu/runtime・kototama を検索して 0 件）。この
+TS SDK は CF-worker appview 用の compat 遺物であり、selfhost の部品ではない。
+よって新世界に残す価値があるのは appview 8 本を bundle するのに必要な最小限
+だけで、以下の方針で rename / 除去した:
+
+| 旧 | 処置 | 根拠 |
+|---|---|---|
+| `@etzhayyim/kami-engine-sdk` | **除去** | src 参照 0（実測） |
+| `@etzhayyim/{sdk,did-etzhayyim,xrpc,graph-schema}` | **rename**: `@kotoba-lang/*` へ（leaf 名は `did:etzhayyim` 等の wire 識別子に由来するため不変。import 文字列14 ファイルを更新） | org は既に kotoba-lang へ再配置済み。npm scope が移行に取り残されていた |
+| 自パッケージ名 | `@etzhayyim/kotoba-kotodama-host-sdk` → `@kotoba-lang/kotoba-kotodama-host-sdk` | 同上 |
+| `kysely` / `pg` / `graph-schema` の実体 | **次の除去 slice**（JUN-131） | Kysely 経路は ADR-2605111200 で Workers 禁止（no-op 方向）。graph-schema はこの経路専用の型（home は新世界に無い）。14 ファイルに波及するため別 slice |
+| wire 識別子（`did:etzhayyim` / `com.etzhayyim.*` / NSID） | **不変** | プロトコル。rename の対象外 |
+
+配線（`workspace:*` → `file:` リンク）は rename 済みの3件（sdk / did-etzhayyim /
+xrpc、いずれも `kotoba-lang/` 配下で name 確定）について次 slice で適用する。
+**それまで `npm install` は失敗する（実測: `Unsupported URL Type "workspace:"`）**。
 
 ## 撤去条件
 

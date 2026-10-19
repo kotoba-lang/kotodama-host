@@ -14,7 +14,7 @@
 // did:etzhayyim-specific helpers (depth, parent, root) re-export from
 // @etzhayyim/did-etzhayyim to keep the canonical impl single-sourced (ADR-0029).
 
-import { isValidDidetzhayyim, didDepth as didDepthetzhayyim, didParent as didParentetzhayyim, didRoot as didRootetzhayyim } from "@etzhayyim/did-etzhayyim";
+import { isValidDidetzhayyim, didDepth as didDepthetzhayyim, didParent as didParentetzhayyim, didRoot as didRootetzhayyim } from "@kotoba-lang/did-etzhayyim";
 
 export type DidMethod = "erc725" | "web" | "plc" | "pkh" | "etzhayyim";
 

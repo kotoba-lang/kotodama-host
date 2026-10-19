@@ -23,9 +23,9 @@ import { conversationSecureDecrypt, reply, say } from "./conversation.js";
 import { agentConverseAsync } from "./llm.js";
 import { agentReact, type AgentTool } from "./react.js";
 import type { XrpcClient } from "./xrpc-client.js";
-import { resolveAutoCrudConvention } from "@etzhayyim/xrpc/app-convention";
-import { registerCommand, registerQuery } from "@etzhayyim/xrpc/command-dsl";
-import { resolveXrpcMethod } from "@etzhayyim/xrpc/dispatch";
+import { resolveAutoCrudConvention } from "@kotoba-lang/xrpc/app-convention";
+import { registerCommand, registerQuery } from "@kotoba-lang/xrpc/command-dsl";
+import { resolveXrpcMethod } from "@kotoba-lang/xrpc/dispatch";
 import {
   createCommandEntry,
   asAgentTool,
