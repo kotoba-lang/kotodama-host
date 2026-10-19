@@ -1,4 +1,4 @@
-import type { WRPCError } from "@etzhayyim/xrpc/error";
+import type { WRPCError } from "@kotoba-lang/xrpc/error";
 
 export const DEFAULT_RPC_TIMEOUT_MS = 30_000;
 

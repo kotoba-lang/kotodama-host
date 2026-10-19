@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as readline from 'readline';
-import { Etzhayyim, signal } from '@etzhayyim/sdk';
+import { Etzhayyim, signal } from '@kotoba-lang/sdk';
 
 export interface NDJSONRecord {
   v: number;

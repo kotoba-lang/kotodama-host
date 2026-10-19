@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { OrganismPostDrainer, NDJSONRecord } from "../src/drainer/index.js";
-import { Etzhayyim } from "@etzhayyim/sdk";
+import { Etzhayyim } from "@kotoba-lang/sdk";
 
 // Mock the SDK
-vi.mock("@etzhayyim/sdk", () => {
+vi.mock("@kotoba-lang/sdk", () => {
   return {
     Etzhayyim: vi.fn().mockImplementation(() => ({
       write: vi.fn().mockResolvedValue(true)

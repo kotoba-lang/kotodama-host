@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 const mockWrite = vi.fn();
 
-vi.mock('@etzhayyim/sdk', () => ({
+vi.mock('@kotoba-lang/sdk', () => ({
   Etzhayyim: vi.fn().mockImplementation(() => ({
     write: mockWrite,
   })),

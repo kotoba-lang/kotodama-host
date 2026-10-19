@@ -6,11 +6,11 @@ import {
   expandCollection,
   witToCollection,
   nsidToMethod,
-} from "@etzhayyim/xrpc/nsid";
-import type { Fetcher } from "@etzhayyim/xrpc/transport";
-import { BindingTransport } from "@etzhayyim/xrpc/transport";
-import { ServiceAuth } from "@etzhayyim/xrpc/auth";
-import { throwOnError } from "@etzhayyim/xrpc/error";
+} from "@kotoba-lang/xrpc/nsid";
+import type { Fetcher } from "@kotoba-lang/xrpc/transport";
+import { BindingTransport } from "@kotoba-lang/xrpc/transport";
+import { ServiceAuth } from "@kotoba-lang/xrpc/auth";
+import { throwOnError } from "@kotoba-lang/xrpc/error";
 import type { WriteBufferEntry } from "./types.js";
 import { dispatchWriteEntry } from "./write-dispatch.generated.js";
 import {
