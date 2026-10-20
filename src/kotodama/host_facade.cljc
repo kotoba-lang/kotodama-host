@@ -11,7 +11,6 @@
   (:require [kotodama.host-surface :as host-surface]
             [kotodama.host-effects :as host-effects]
             [kotodama.host-export :as host-export]
-            [kotodama.host-lexicon :as host-lexicon]
             [kotodama.host-heartbeat :as host-heartbeat]
             ))
 
@@ -32,9 +31,9 @@
 
 ;; lexicon / heartbeat 系（appview の parseLexiconInput /
 ;; createInboxBuffer / createCadenceState 対応）
-(def parse-lexicon-input host-lexicon/parse-lexicon-input)
-(def try-parse-lexicon-input host-lexicon/try-parse-lexicon-input)
-(def validate-against-schema host-lexicon/validate-against-schema)
+(def parse-lexicon-input host-surface/parse-lexicon-input)
+(def try-parse-lexicon-input host-surface/try-parse-lexicon-input)
+(def validate-against-schema host-surface/validate-against-schema)
 (def create-inbox-buffer host-heartbeat/create-inbox-buffer)
 (def create-cadence-state host-heartbeat/create-cadence-state)
 (def determine-mood host-surface/determine-mood)

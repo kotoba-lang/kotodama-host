@@ -181,3 +181,88 @@
        (when-let [uc (get use-case-defaults use-case)]
          (when (available? uc) uc)))
      default-fallback-model)))
+
+;; ---- lexicon 検証の oracle（スキーマ走査 + JSON デコード版。guest 核
+;; host_lexicon の双子 —— 型寛容性ルールと required 判定の意味は host_lexicon
+;; が正本）。TS 正本 06e57cf^ の lexicon-validator.ts。
+
+(defn type-of-value
+  "値の型名（TS の typeOfValue と同じ 7 値）。"
+  [v]
+  (cond
+    (or (nil? v) (= js/undefined v)) "unknown"
+    (string? v) "string"
+    (boolean? v) "boolean"
+    (number? v) (if (and (js/Number.isInteger v) (not (js/Number.isNaN v)))
+                  "integer" "number")
+    (or (array? v) (sequential? v)) "array"
+    (= (type v) js/Object) "object"
+    (map? v) "object"
+    :else "unknown"))
+
+(defn- matches-expected [actual expected]
+  (cond
+    (= expected "unknown") true
+    (and (= expected "number") (= actual "integer")) true
+    (and (= expected "integer") (= actual "integer")) true
+    :else (= actual expected)))
+
+(defn validate-against-schema
+  "スキーマ（{:required [...] :properties {key type}}）でオブジェクトを
+  検証し、issue 文字列のベクタを返す（空 = 妥当）。TS の validateAgainstSchema
+  とメッセージ形式を一致させる。"
+  [value schema]
+  (if (or (nil? value)
+          (= js/undefined value)
+          (not (map? value))
+          (array? value))
+    [(str "input is not an object (got " (type-of-value value) ")")]
+    (let [required (or (:required schema) [])
+          properties (or (:properties schema) {})]
+      (into
+       (vec (for [key required
+                  :when (or (not (contains? value key))
+                            (nil? (get value key))
+                            (= js/undefined (get value key)))]
+              (str "missing required property '" key "'")))
+       (for [[key expected] properties
+             :let [present? (contains? value key)]
+             :when present?
+             :let [actual (type-of-value (get value key))]
+             :when (not (and (= actual "unknown")
+                             (= js/undefined (get value key))))
+             :when (not (matches-expected actual expected))]
+         (str "property '" key "': expected " expected ", got " actual))))))
+
+(defn parse-lexicon-input
+  "body（JSON 文字列またはバイト列）をスキーマで検証してデータを返す。
+  スキーマ無しなら検証せず decode のみ（TS の parseLexiconInput と同じ）。
+  不正なら :kotodama.host.lexicon/validation-error を含む例外（issues 付き）。"
+  [registry nsid body]
+  (let [schema (get registry nsid)
+        decoded (cond
+                  (string? body) (js->clj (js/JSON.parse body))
+                  (array? body) (js->clj (js/JSON.parse (.decode (js/TextDecoder.) body)))
+                  (map? body) body
+                  :else nil)
+        decoded (if (nil? decoded) {} decoded)]
+    (if (nil? schema)
+      decoded
+      (let [issues (validate-against-schema decoded schema)]
+        (if (seq issues)
+          (throw (ex-info "lexicon validation failed"
+                          {:kotodama.host.lexicon/validation-error true
+                           :nsid nsid :issues issues}))
+          decoded)))))
+
+(defn try-parse-lexicon-input
+  "parse-lexicon-input の例外なし版。{:ok true :input ...} か
+  {:ok false :issues [...]} を返す（TS の tryParseLexiconInput と同じ）。"
+  [registry nsid body]
+  (try
+    {:ok true :input (parse-lexicon-input registry nsid body)}
+    (catch :default e
+      (let [data (ex-data e)]
+        (if (:kotodama.host.lexicon/validation-error data)
+          {:ok false :issues (:issues data)}
+          (throw e))))))
