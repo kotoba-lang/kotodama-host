@@ -1,0 +1,36 @@
+(ns kotodama.host-model
+  "resolveModelId の kotoba 版（JUN-133 スライス⑤）。意味の基準は prune 前の
+  TS 実装（06e57cf^ の llm-model-registry.ts）。MODEL_REGISTRY /
+  MODEL_ALIASES / USE_CASE_DEFAULTS の実データはレジストリ引数に取る。"
+  (:require [clojure.string :as cstr]))
+
+(def default-fallback-model "gemma-4-e4b-it")
+
+(defn resolve-model-id
+  "hint / use-case からモデル ID を決める（TS の resolveModelId と同じ順序）。
+  1. hint: 直接 ID（available）→ alias（小文字）→ cf-model 一致。
+     レジストリに在るが unavailable なら use-case へフォールスルー。
+  2. use-case 既定（available のもの）。
+  3. \"gemma-4-e4b-it\"。
+  registry: {\"id\" {:available bool :cf-model str}}
+  aliases: {\"lower\" \"id\"}
+  use-case-defaults: {\"useCase\" \"id\"}"
+  [registry aliases use-case-defaults hint use-case]
+  (let [available? (fn [id] (boolean (get-in registry [id :available])))]
+    (or
+     (when (and hint (not (empty? (cstr/trim hint))))
+       (let [trimmed (cstr/trim hint)]
+         (or
+          (when (available? trimmed) trimmed)
+          (when-let [aliased (get aliases (cstr/lower-case trimmed))]
+            (when (available? aliased) aliased))
+          (some (fn [[id def]]
+                  (when (and (available? id)
+                             (= (cstr/lower-case (:cf-model def))
+                                (cstr/lower-case trimmed)))
+                    id))
+                registry))))
+     (when use-case
+       (when-let [uc (get use-case-defaults use-case)]
+         (when (available? uc) uc)))
+     default-fallback-model)))
