@@ -1,56 +1,36 @@
-# CLJC facade 移行プログラム（JUN-133 完了条件の中核）
+# facade / 実行面の一本化（JUN-133）— TS SDK prune 済み
 
-TS SDK（`sdk/kotodama-host-sdk`）は compat として復元済み（RESTORATION.md）。
-撤去条件は「**appview 8 本が CLJC facade へ移行**」。本文書はその移行の
-設計と順序。実測は 2026-10-20 時点。
+**owner 決定（2026-10-20）**: TS SDK は prune して **kotoba + amu selfhost** に
+一本化する。compat 維持（RESTORATION.md 方針）は取り下げ。
 
-## 現状（実測）
+## 実施（本変更）
 
-- **EDN 権威はある**: `resources/kotodama_host/sdk_facade.edn` —
-  `:facade :cljc-generated`、`:generated "src/host-contract.cljc"`、
-  operations（:create-host-sdk / :dispatch / ...）を宣言。
-- **生成パイプラインが無い**: scripts/ に生成器は存在せず、宣言どおりの
-  `src/host-contract.cljc` も無い。あるのは `src/kotodama/host_contract.cljk`
-  = **EDN 権威ローダー**（boundary / provider-catalog / sdk-facade /
-  sdk-sources / config-schema を読み host-exports を定義するだけ）。
-  edn の `:generated` パスと実体が食い違っている（要訂正）。
-- **消費者**: TS SDK の createWorkerExport / dispatch 等を import する
-  appview の `app.ts` が漂流（RESTORATION.md: app-itonami / app-editor /
-  app-kenkyusha / app-playwright / app-briefing / llm / repository /
-  os-messaging の 8 本が bundle 不能だった = 外観は復元で解消）。実測では
-  消費者は 8 本に留まらず（defence-handlers.ts 系や他 appview の app.ts）。
+- `sdk/kotodama-host-sdk/`（TS SDK 全 108 ファイル）を **削除**。
+- ソースカタログ（`resources/kotodama_host/sdk_sources.edn`）を kotoba 側の
+  生成物（`src/kotodama/host_facade.cljc`）に更新。
+- parity の TS SDK レグを prune 検証に差替え（facade ↔ boundary.edn ↔ WIT
+  の 3 者一致は維持）。
 
-## 移行の設計
+## 体制（変更後）
 
 ```
 sdk_facade.edn（権威）
-  │  生成器（新設: kbb スクリプト、zero-dep）
+  │  scripts/gen-sdk-facade.cljk（決定的生成）
   ▼
-src/kotodama/host_facade.cljc（生成物: operations を公開する実行可能 facade）
-  │  kbb / amu で JS へ
+src/kotodama/host_facade.cljc（生成物）
+  │  kbb / amu
   ▼
-appview の app.ts は TS SDK の代わりに生成 facade を import
+実行面: kotoba + amu selfhost（kototama-browser-host-v1）
 ```
 
-- facade の API 面は TS SDK の互換（create-host-sdk / dispatch / ...）を
-  保ち、appview 側の差分は import だけに留めるのが目標。
-- 生成器は EDN 1 本から出力を決める（単一権威 = 5b2b084 の「EDN/CLJC
-  authority」方針）。生成物ヘッダに provenance を残す（lexicon codegen と同じ
-  流儀）。
+- guest/host 契約の権威は EDN/CLJC（boundary.edn / sdk_facade.edn / WIT）。
+- 実行は amu selfhost（typed ホストの本筋 — Chicory 二重実装なし）。
+- appview 8 本（app-itonami / app-editor / app-kenkyusha / app-playwright /
+  app-briefing / llm / repository / os-messaging）は TS SDK import を
+  **amu selfhost 経由の面に差し替える**のが残作業。TS SDK はもう無いので
+  8 本は現状 bundle できない（prune を先行させた owner 決定の了解事項）。
 
-## スライス順序（1 run = 1 スライス）
+## 残スライス
 
-1. **生成器**: `scripts/gen-sdk-facade.cljk`（sdk_facade.edn →
-   host_facade.cljc）+ ゴールデンテスト。edn の `:generated` パスを実体に
-   訂正。
-2. **facade の実行検証**: host_facade.cljc を kbb で動かし TS SDK の
-   ゴールデン挙動と一致を取る（parity）。
-3〜10. **appview 8 本を 1 本ずつ** import 差替え + bundle 検証
-   （app-itonami → app-editor → app-kenkyusha → app-playwright →
-   app-briefing → llm → repository → os-messaging）。
-11. **TS SDK 再削除**（RESTORATION.md の撤去条件充足を宣言し削除）。
-
-## 未確定事項（要判断）
-
-- 生成 facade の実行環境（kbb sci / amu js target / 両方）。
-- defence-handlers.ts 系の消費者（8 本外）を SDK 撤去前にどこまで移行するか。
+1. appview 8 本の import 差替え（amu selfhost 経由）+ bundle 検証。
+2. defence-handlers.ts 等の 8 本外の消費者の扱い（同じく amu selfhost 面へ）。

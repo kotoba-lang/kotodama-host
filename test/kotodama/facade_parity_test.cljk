@@ -1,8 +1,8 @@
 (ns kotodama.facade-parity-test
   "JUN-133 スライス②: facade の実行手前の parity（drift 検出）。
   facade（生成物）↔ boundary.edn（guest 境界権威）↔ wit（コンポーネント出力）
-  ↔ TS SDK（compat 実装）の 4 者が一致することを検証する。実行 parity は
-  スライス③〜⑩（appview 移行ごと）で取る。"
+  の 3 者が一致することを検証する。TS SDK は prune 済み（owner 決定
+  2026-10-20）で、実行面は kotoba + amu selfhost。"
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.edn :as edn]
             [clojure.string :as str]
@@ -10,7 +10,7 @@
 
 (def boundary (edn/read-string (slurp "resources/kotodama_host/boundary.edn")))
 (def wit-src (slurp "wit/kotodama-host.wit"))
-(def sdk-index (slurp "sdk/kotodama-host-sdk/src/index.ts"))
+(def sdk-pruned? (not (.existsSync (js/require "node:fs") "sdk/kotodama-host-sdk")))
 
 (defn- exports-by-name [edn-map]
   (into {} (map (fn [e] [(get e (keyword "kotodama.host" "name")) e])
@@ -35,8 +35,7 @@
         (is (str/includes? wit-src (str "export " wit-name ":"))
             (str "WIT に export " wit-name " が無い"))))))
 
-(deftest facade-ops-have-ts-sdk-counterparts
-  (testing "各 op に対応する TS SDK 実装が存在する（compat の drift 検出）"
-    (is (str/includes? sdk-index "export function createHostSDK"))
-    (doseq [sym ["handleRequest" "witExports"]]
-      (is (str/includes? sdk-index sym)))))
+(deftest ts-sdk-is-pruned
+  (testing "TS SDK は prune 済み（owner 決定 2026-10-20: kotoba + amu selfhost）"
+    (is sdk-pruned?
+        "sdk/kotodama-host-sdk が残っている — kotoba/amu selfhost 方針に反する")))

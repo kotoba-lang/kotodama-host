@@ -1,5 +1,9 @@
 # JUN-133 item 3 周辺 — file: リンク未解決の根因（2026-10-20 実測）
 
+> **注記（2026-10-20 同日、owner 決定）**: TS SDK は prune 済み
+> （kotoba + amu selfhost に一本化）。本文書は SDK 撤去前の観測記録として
+> 残す（file: リンクの深さ前提の教訓は他の linked パッケージにも有効）。
+
 ## 症状
 
 worktree で `npm install --ignore-scripts` 後も `@kotoba-lang/xrpc` /
