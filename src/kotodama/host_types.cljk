@@ -5,11 +5,13 @@
   落とす（混在値のマップは持てない —— 実測）。関数値フィールドを持つ
   HostSDK 形は guest では表せないため oracle（host_surface.cljk）側に残す。
   返り値はスカラー（:i64 の 1/0、guest ABI）。意味の正本は本モジュール。"
-  (:export [seq-ok? text-ok? commit-shape-ok? agent-config-ok? app-def-shape-ok?
+  (:export [main seq-ok? text-ok? commit-shape-ok? agent-config-ok? app-def-shape-ok?
             test-seq-ok test-seq-bad test-text-ok test-text-bad
             test-commit-ok test-commit-missing-time test-commit-bad-seq
             test-agent-config-ok test-agent-config-bad
             test-app-def-ok test-app-def-bad]))
+
+(defn main [] :i64 0)
 
 (defn seq-ok? [s :i64] :i64
   ;; ComAtprotoSyncSubscribeReposCommit の seq（0 以上の整数）。

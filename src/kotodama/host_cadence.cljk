@@ -7,11 +7,13 @@
   意味の正本は本モジュール（TS 正本: 06e57cf^ の heartbeat-cadence.ts）。
   oracle（キーワード版）は host_surface.cljk。resolveHeartbeatCadence 本体は
   DB 結合のため対象外（ADR-2605111200）。"
-  (:export [determine-mood-code mood-cadence apply-stress-scaling
+  (:export [main determine-mood-code mood-cadence apply-stress-scaling
             test-mood-stressed test-mood-joyful test-mood-neutral
             test-mood-focused test-cadence-joyful-post test-cadence-stressed-post
             test-cadence-neutral-drill test-scale-mid test-scale-unchanged
             test-scale-joyful-51]))
+
+(defn main [] :i64 0)
 
 (defn determine-mood-code
   "Joucho スコアから mood コードを決める（TS determineMood と同じ分岐）。

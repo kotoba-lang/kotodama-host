@@ -7,9 +7,11 @@
   正規化（trim + fold-case）を担う。意味の正本は本モジュール
   （TS 正本: 06e57cf^ の llm-model-registry.ts）。"
   (:require #?(:kotoba [kotoba.lang.bounded-text :as bt]))
-  (:export [normalize-hint choose-model-id
+  (:export [main normalize-hint choose-model-id
             test-normalize-hint test-choose-direct test-choose-alias
             test-choose-cf test-choose-uc test-choose-fallback]))
+
+(defn main [] :i64 0)
 
 (defn normalize-hint
   "hint の正規化（trim + 小文字化）。alias / cf-model の照合キー。
