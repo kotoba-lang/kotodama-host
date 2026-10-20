@@ -100,13 +100,12 @@ class HyperdriveDriver implements Driver {
   constructor(private hyperdrive: Hyperdrive) {}
 
   async init(): Promise<void> {
-    if (!this.hyperdrive?.connectionString) {
-      throw new Error("HyperdriveDialect: missing Hyperdrive connectionString");
-    }
-    if (!this.pgCtor) {
-      const mod = (await import("pg")) as unknown as { Client: PgClientCtor };
-      this.pgCtor = mod.Client;
-    }
+    // JUN-133 (ADR-2605111200): DB 経路実体（pg driver）は切断済み。
+    // DB I/O は AgentGateway MCP 経由で K8s pod-side LangServer に dispatch する。
+    throw new Error(
+      "HyperdriveDialect: the pg driver path is removed (JUN-133). " +
+      "Route DB I/O through AgentGateway MCP to the pod-side LangServer."
+    );
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
