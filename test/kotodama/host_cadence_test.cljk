@@ -2,7 +2,7 @@
   "cadence 判定カーネル / resolveModelId のテスト（JUN-133 スライス⑤）。
   TS 正本（06e57cf^）の値・分岐を固定する。"
   (:require [clojure.test :refer [deftest is testing]]
-            [kotodama.host-cadence :as c]
+            [kotodama.host-surface :as c]
             [kotodama.host-model :as m]))
 
 (def joucho {:joy 80 :calm 60 :stress 30 :gratitude 50 :focus 70})

@@ -13,7 +13,6 @@
             [kotodama.host-export :as host-export]
             [kotodama.host-lexicon :as host-lexicon]
             [kotodama.host-heartbeat :as host-heartbeat]
-            [kotodama.host-cadence :as host-cadence]
             [kotodama.host-model :as host-model]
             ))
 
@@ -39,9 +38,9 @@
 (def validate-against-schema host-lexicon/validate-against-schema)
 (def create-inbox-buffer host-heartbeat/create-inbox-buffer)
 (def create-cadence-state host-heartbeat/create-cadence-state)
-(def determine-mood host-cadence/determine-mood)
-(def mood-to-cadence host-cadence/mood->cadence)
-(def apply-stress-scaling host-cadence/apply-stress-scaling)
+(def determine-mood host-surface/determine-mood)
+(def mood-to-cadence host-surface/mood->cadence)
+(def apply-stress-scaling host-surface/apply-stress-scaling)
 (def resolve-model-id host-model/resolve-model-id)
 
 ;; 型 3 つ（HostSDK / AppDef / ComAtprotoSyncSubscribeReposCommit の
