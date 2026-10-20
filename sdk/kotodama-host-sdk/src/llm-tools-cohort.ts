@@ -195,8 +195,11 @@ export function createCohortToolHandler(opts: {
       for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
         if (v != null) params.set(k, String(v));
       }
-      // 契約（test/llm-tools-cohort）: GET は init なし（body も header も渡さない）。
-      const resp = await f(`${url}?${params.toString()}`);
+      // 契約（test/llm-tools-cohort）: GET は **body を持たない**。
+      // Authorization ヘッダは付ける（読み取りも認可の内 — 裸の GET にしない）。
+      const resp = await f(`${url}?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${opts.bearerToken}` },
+      });
       if (!resp.ok) {
         return { error: `XRPC ${entry.nsid} failed: ${resp.status}` };
       }

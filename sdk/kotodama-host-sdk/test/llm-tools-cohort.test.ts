@@ -146,7 +146,9 @@ describe('createCohortToolHandler', () => {
     expect(captured.url).toContain('?');
     expect(captured.url).toContain('pcfL1=8-info-technology');
     expect(captured.url).toContain('limit=50');
-    expect(captured.init).toBeUndefined(); // no body for GET
+    // 契約: GET は body を持たない（no body for GET）。認可ヘッダは付く。
+    expect(captured.init.body).toBeUndefined();
+    expect(captured.init.headers.Authorization).toBe('Bearer tok');
   });
 
   it('returns error object on non-2xx', async () => {
