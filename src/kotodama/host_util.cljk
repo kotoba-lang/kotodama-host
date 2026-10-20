@@ -6,7 +6,7 @@
   kbb 側の oracle は host_surface.cljk（同一ベクタで両方を検証する双子）。
   効果は host_effects.cljk 側。意味の正本は本モジュール（TS SDK は prune 済み）。"
   (:require #?(:kotoba [kotoba.lang.bounded-text :as bounded-text]))
-  (:export [nsid-valid? test-nsid-valid test-nsid-length-limits]))
+  (:export [nsid-valid? test-ok-example test-ok-bsky test-bad-nodots test-bad-digit test-bad-case test-bad-empty-seg test-long-label test-overall-length]))
 
 (defn- lower-alpha? [c :i64] :bool
   (and (>= c 97) (<= c 122)))
@@ -73,22 +73,31 @@
               (and (labels-ok? v sep (- n 2))
                    (name-ok? (bounded-text/segment-text v sep (- n 1))))))))
 
-;; ---- amu test（guest 覇約: ゼロ引数 test-*、戻り注釈 :i64、1/0）----
 
-(defn test-nsid-valid [] :i64
-  ;; and は 2 引数ずつ畳む（多引数 and は guest 実行で fuel/trap した —— 実測）。
-  (if (and (nsid-valid? "com.example.doThing")
-           (and (nsid-valid? "app.bsky.feed.getPosts")
-                (and (not (nsid-valid? "no-dots"))
-                     (and (not (nsid-valid? "com.example.0bad"))
-                          (and (not (nsid-valid? "Com.example.doThing"))
-                               (not (nsid-valid? "com..doThing")))))))
-    1 0))
+;; ---- amu test（1 test = 1 呼び出しに分割 —— fuel/trap の切り分け）----
 
-(defn test-nsid-length-limits [] :i64
-  (let [long-label (bounded-text/repeat-text "a" 64)
-        many (bounded-text/repeat-text "aaaaaaaaaa." 30)
-        over (str "com." many "x")]
-    (if (and (not (nsid-valid? (str "com." long-label ".x")))
-             (not (nsid-valid? over)))
-      1 0)))
+(defn test-ok-example [] :i64
+  (if (nsid-valid? "com.example.doThing") 1 0))
+
+(defn test-ok-bsky [] :i64
+  (if (nsid-valid? "app.bsky.feed.getPosts") 1 0))
+
+(defn test-bad-nodots [] :i64
+  (if (nsid-valid? "no-dots") 0 1))
+
+(defn test-bad-digit [] :i64
+  (if (nsid-valid? "com.example.0bad") 0 1))
+
+(defn test-bad-case [] :i64
+  (if (nsid-valid? "Com.example.doThing") 0 1))
+
+(defn test-bad-empty-seg [] :i64
+  (if (nsid-valid? "com..doThing") 0 1))
+
+(defn test-long-label [] :i64
+  ;; 64 文字ラベル（上限 63）は拒否
+  (if (nsid-valid? (str "com." (bounded-text/repeat-text "a" 64) ".x")) 0 1))
+
+(defn test-overall-length [] :i64
+  ;; 全長 253 超は拒否
+  (if (nsid-valid? (str "com." (bounded-text/repeat-text "aaaaaaaaaa." 30) "x")) 0 1))
