@@ -15,7 +15,7 @@
             [kotodama.host-heartbeat :as host-heartbeat]
             [kotodama.host-cadence :as host-cadence]
             [kotodama.host-model :as host-model]
-            [kotodama.host-types :as host-types]))
+            ))
 
 ;; appview 差替え面（docs/appview-replacement-surface.md）
 (def str host-surface/str')
@@ -47,10 +47,10 @@
 ;; 型 3 つ（HostSDK / AppDef / ComAtprotoSyncSubscribeReposCommit の
 ;; 形状述語。正本は prune 前の types.ts）
 (def com-atproto-sync-subscribe-repos-commit?
-  host-types/com-atproto-sync-subscribe-repos-commit?)
-(def app-def? host-types/app-def?)
-(def agent-config? host-types/agent-config?)
-(def host-sdk? host-types/host-sdk?)
+  host-surface/com-atproto-sync-subscribe-repos-commit?)
+(def app-def? host-surface/app-def?)
+(def agent-config? host-surface/agent-config?)
+(def host-sdk? host-surface/host-sdk?)
 
 (def sdk-package
   "パッケージ名（EDN 権威より）。"

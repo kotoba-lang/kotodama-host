@@ -26,3 +26,60 @@
                  (every? #(full-match? "[a-z][a-z0-9-]{0,62}" %) (butlast parts))
                  (full-match? "[a-zA-Z][a-zA-Z0-9]*" (last parts)))
         v))))
+
+;; ---- 型 3 つの oracle（自由型のマップ形状述語。guest 核 host_types の双子。
+;; HostSDK 形は関数値フィールドを持つため guest では表せず、oracle 専用）----
+
+(defn- str+ [v] (and (string? v) (not (empty? v))))
+(defn- str-or-nil? [v] (or (nil? v) (string? v)))
+
+(defn com-atproto-sync-subscribe-repos-commit?
+  "ComAtprotoSyncSubscribeReposCommit（TS の型と同一形状）:
+  {:seq bigint/int :repo :collection :rkey :action :time 文字列、
+   :cid :rev は文字列か nil}。seq は 0 以上の整数。"
+  [m]
+  (and (map? m)
+       (contains? m :seq)
+       (let [s (:seq m)]
+         (and (integer? s) (not (neg? s))))
+       (str+ (:repo m))
+       (str+ (:collection m))
+       (str+ (:rkey m))
+       (str+ (:action m))
+       (str+ (:time m))
+       (str-or-nil? (:cid m))
+       (str-or-nil? (:rev m))))
+
+(defn agent-config?
+  "AgentConfig: {:system-prompt str :model str}（両方必須）。"
+  [m]
+  (and (map? m) (str+ (:system-prompt m)) (str+ (:model m))))
+
+(defn app-def?
+  "AppDef（TS と同一形状）: {:id str :name str
+  :description? str :agent? AgentConfig}。"
+  [m]
+  (and (map? m)
+       (str+ (:id m))
+       (str+ (:name m))
+       (or (not (contains? m :description)) (str-or-nil? (:description m)))
+       (or (not (contains? m :agent)) (nil? (:agent m)) (agent-config? (:agent m)))))
+
+(defn host-sdk?
+  "HostSDK ハンドル（TS のインターフェースと同一の必須キー）:
+  {:app :env :host-imports :pds :router :handle-request :wit-exports}。
+  wit-exports は {:http-handler :w-handler :serve-handler :shinka-handler}
+  を持つ。:handle-request と各 handler は実関数（IFn ではない）。"
+  [m]
+  (and (map? m)
+       (every? #(contains? m %)
+               [:app :env :host-imports :pds :router :handle-request :wit-exports])
+       (fn? (:handle-request m))
+       (let [w (:wit-exports m)]
+         (and (map? w)
+              (every? #(contains? w %)
+                      [:http-handler :w-handler :serve-handler :shinka-handler])
+              (fn? (get-in w [:http-handler :handle]))
+              (fn? (get-in w [:w-handler :handle-com-atproto-sync-subscribe-repos-commit]))
+              (fn? (get-in w [:serve-handler :handle]))
+              (fn? (get-in w [:shinka-handler :on-heartbeat]))))))
