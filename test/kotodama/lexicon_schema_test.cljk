@@ -3,7 +3,7 @@
   （JUN-133 スライス⑦）。履歴の生成物からの機械変換を実データで固定する。"
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.edn :as edn]
-            [kotodama.host-lexicon :as lx]))
+            [kotodama.host-surface :as lx]))
 
 (def data (edn/read-string (slurp "resources/kotodama_host/lexicon_input_schema.edn")))
 (def schema (:kotodama.host.lexicon/input-schema data))

@@ -2,7 +2,7 @@
   "parseLexiconInput 系 / heartbeat 系のテスト（JUN-133 スライス④）。
   TS 正本（06e57cf^）のメッセージ形式・判定を固定する。"
   (:require [clojure.test :refer [deftest is testing]]
-            [kotodama.host-lexicon :as lx]
+            [kotodama.host-surface :as lx]
             [kotodama.host-heartbeat :as hb]))
 
 (def schema

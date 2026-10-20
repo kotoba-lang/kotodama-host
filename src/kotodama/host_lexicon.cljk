@@ -1,90 +1,42 @@
 (ns kotodama.host-lexicon
-  "parseLexiconInput 系の kotoba 版（JUN-133 スライス④）。
-  意味の基準は prune 前の TS 実装（sdk/kotodama-host-sdk/src/lexicon-validator.ts
-  at 06e57cf^）— メッセージ形式・判定を verbatim に追従する。
-  LEXICON_INPUT_SCHEMA の実データ（502 NSIDs）は生成物であり、本モジュールは
-  レジストリを引数に取る（データ投入は後の生成パイプラインで行う）。"
-  (:require [clojure.string :as cstr]))
+  "lexicon 検証の判定核 guest 核（JUN-149 スライス⑤: amu 適格化）。
+  typed guest 覇約（型注釈必須・host interop 禁止・:export 必須）。
+  スキーマ走査（マップ反復）と JSON デコードは guest ABI に無いため
+  oracle（host_surface）側に残し、guest は **フィールド単位の判定核**を担う:
+  型寛容性ルール（TS matchesExpected と同じ）と required 存在判定。
+  意味の正本は本モジュール（TS 正本: 06e57cf^ の lexicon-validator.ts）。"
+  (:export [field-type-ok? required-present?
+            test-type-unknown test-type-number-accepts-integer
+            test-type-integer-strict test-type-equal test-type-mismatch
+            test-type-number-from-string test-required-present
+            test-required-missing]))
 
-(defn type-of-value
-  "値の型名（TS の typeOfValue と同じ 7 値）。"
-  [v]
-  (cond
-    (or (nil? v) (= js/undefined v)) "unknown"
-    (string? v) "string"
-    (boolean? v) "boolean"
-    (number? v) (if (and (js/Number.isInteger v) (not (js/Number.isNaN v)))
-                  "integer" "number")
-    (or (array? v) (sequential? v)) "array"
-    (= (type v) js/Object) "object"
-    (map? v) "object"
-    :else "unknown"))
+(defn field-type-ok?
+  "型寛容性ルール（TS の matchesExpected と同じ）:
+  expected \"unknown\" は何でも可。expected \"number\" は \"integer\" を受ける。
+  expected \"integer\" は \"integer\" のみ。他は等価。戻り 1/0。"
+  [actual :string expected :string] :i64
+  (if (= expected "unknown")
+    1
+    (if (= expected "number")
+      (if (or (= actual "integer") (= actual "number")) 1 0)
+      (if (= expected "integer")
+        (if (= actual "integer") 1 0)
+        (if (= actual expected) 1 0)))))
 
-(defn- matches-expected [actual expected]
-  (cond
-    (= expected "unknown") true
-    (and (= expected "number") (= actual "integer")) true
-    (and (= expected "integer") (= actual "integer")) true
-    :else (= actual expected)))
+(defn required-present?
+  "required プロパティの存在判定（TS の必須チェックと同じ: キーの存在が
+  唯一の条件。値の空文字は許容）。戻り 1/0。"
+  [f [:map :string :string] k :string] :i64
+  (if (contains? f k) 1 0))
 
-(defn validate-against-schema
-  "スキーマ（{:required [...] :properties {\"key\" \"type\"}}）でオブジェクトを
-  検証し、issue 文字列のベクタを返す（空 = 妥当）。TS の validateAgainstSchema
-  とメッセージ形式を一致させる。"
-  [value schema]
-  (if (or (nil? value)
-          (= js/undefined value)
-          (not (map? value))
-          (array? value))
-    [(str "input is not an object (got " (type-of-value value) ")")]
-    (let [required (or (:required schema) [])
-          properties (or (:properties schema) {})]
-      (into
-       (vec (for [key required
-                  :when (or (not (contains? value key))
-                            (nil? (get value key))
-                            (= js/undefined (get value key)))]
-              (str "missing required property '" key "'")))
-       (for [[key expected] properties
-             :let [present? (contains? value key)]
-             :when present?
-             :let [actual (type-of-value (get value key))]
-             :when (not (and (= actual "unknown")
-                             (= js/undefined (get value key))))
-             :when (not (matches-expected actual expected))]
-         (str "property '" key "': expected " expected ", got " actual))))))
+;; ---- amu test（guest 覇約: 1 test = 1 呼び出し・戻り :i64 の 1/0）----
 
-(defn parse-lexicon-input
-  "body（JSON 文字列またはバイト列）をスキーマで検証してデータを返す。
-  スキーマ無しなら検証せず decode のみ（TS の parseLexiconInput と同じ）。
-  不正なら :kotodama.host.lexicon/validation-error を含む例外（issues 付き）。"
-  [registry nsid body]
-  (let [schema (get registry nsid)
-        decoded (cond
-                  (string? body) #?(:cljs (js->clj (js/JSON.parse body)) :clj nil)
-                  (array? body) #?(:cljs (js->clj (js/JSON.parse
-                                                   (.decode (js/TextDecoder.) body)))
-                                   :clj nil)
-                  (map? body) body
-                  :else nil)
-        decoded (if (nil? decoded) {} decoded)]
-    (if (nil? schema)
-      decoded
-      (let [issues (validate-against-schema decoded schema)]
-        (if (seq issues)
-          (throw (ex-info "lexicon validation failed"
-                          {:kotodama.host.lexicon/validation-error true
-                           :nsid nsid :issues issues}))
-          decoded)))))
-
-(defn try-parse-lexicon-input
-  "parse-lexicon-input の例外なし版。{:ok true :input ...} か
-  {:ok false :issues [...]} を返す（TS の tryParseLexiconInput と同じ）。"
-  [registry nsid body]
-  (try
-    {:ok true :input (parse-lexicon-input registry nsid body)}
-    (catch :default e
-      (let [data (ex-data e)]
-        (if (:kotodama.host.lexicon/validation-error data)
-          {:ok false :issues (:issues data)}
-          (throw e))))))
+(defn test-type-unknown [] :i64 (if (= 1 (field-type-ok? "string" "unknown")) 1 0))
+(defn test-type-number-accepts-integer [] :i64 (if (= 1 (field-type-ok? "integer" "number")) 1 0))
+(defn test-type-integer-strict [] :i64 (if (= 0 (field-type-ok? "number" "integer")) 1 0))
+(defn test-type-equal [] :i64 (if (= 1 (field-type-ok? "boolean" "boolean")) 1 0))
+(defn test-type-mismatch [] :i64 (if (= 0 (field-type-ok? "string" "integer")) 1 0))
+(defn test-type-number-from-string [] :i64 (if (= 0 (field-type-ok? "string" "number")) 1 0))
+(defn test-required-present [] :i64 (if (= 1 (required-present? {"id" "a"} "id")) 1 0))
+(defn test-required-missing [] :i64 (if (= 0 (required-present? {"x" "a"} "id")) 1 0))
