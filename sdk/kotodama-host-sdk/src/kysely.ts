@@ -32,23 +32,13 @@ export function getKyselyHyperdrive(): Hyperdrive | null {
   return null;
 }
 
-// ADR-2605111200 transition window: the ban below was tripping production
-// PDS/AppView read paths (yoro timeline 405) before the AgentGateway MCP →
-// LangServer pod migration was complete. To unblock end-user UI we soften
-// the guard to a warn-once log and let CF Workers still construct a Kysely
-// instance backed by HyperdriveDialect. This stays in place until the
-// upstream feed handlers are routed through MCP per the original ADR.
-let _cfWorkerGuardWarned = false;
+// ADR-2605111200 は CF Worker から RisingWave への接続を全面禁止する。
+// transition window（warn-once ソフトニング）は JUN-133 で撤去。CF Worker からの
+// 構築は WorkerDBProhibitedError で拒否する。構築が許されるのは K8s pod
+// (Bun/Node) 側のみ（ADR-2605111300、HyperdriveDialect 経由）。
 export function createKyselyDb(hyperdrive?: Hyperdrive): Kysely<StrictDatabase> {
   if (isCFWorker()) {
-    if (!_cfWorkerGuardWarned) {
-      _cfWorkerGuardWarned = true;
-      console.warn(
-        "[kotodama-host-sdk] createKyselyDb called from CF Worker. ADR-2605111200 transition: " +
-        "guard softened to warn (was throw) — DB I/O still runs via HyperdriveDialect until the MCP " +
-        "→ LangServer pod migration completes."
-      );
-    }
+    throw new WorkerDBProhibitedError();
   }
   if (!hyperdrive?.connectionString) {
     throw new Error(
