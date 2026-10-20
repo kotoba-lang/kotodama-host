@@ -13,7 +13,6 @@
             [kotodama.host-export :as host-export]
             [kotodama.host-lexicon :as host-lexicon]
             [kotodama.host-heartbeat :as host-heartbeat]
-            [kotodama.host-model :as host-model]
             ))
 
 ;; appview 差替え面（docs/appview-replacement-surface.md）
@@ -41,7 +40,7 @@
 (def determine-mood host-surface/determine-mood)
 (def mood-to-cadence host-surface/mood->cadence)
 (def apply-stress-scaling host-surface/apply-stress-scaling)
-(def resolve-model-id host-model/resolve-model-id)
+(def resolve-model-id host-surface/resolve-model-id)
 
 ;; 型 3 つ（HostSDK / AppDef / ComAtprotoSyncSubscribeReposCommit の
 ;; 形状述語。正本は prune 前の types.ts）
