@@ -53,6 +53,18 @@ ${lines.join("\n")}
 }`;
 }
 
+function propsToTypeName(properties) {
+  // validateAgainstSchema の語彙: string / boolean / integer / number / object / unknown
+  const out = {};
+  for (const [k, v] of Object.entries(properties || {})) {
+    const t = v && v.type;
+    out[k] = t === "string" || t === "boolean" || t === "integer" || t === "number"
+      ? t
+      : (t === "object" || t === "array" ? "object" : "unknown");
+  }
+  return out;
+}
+
 // ---- lexicon 収集 ----
 function collectJson(dir, out) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -144,7 +156,7 @@ out.push(`export const LEXICON_INPUT_SCHEMA: Record<string, unknown> = {`);
 for (const n of nsids) {
   const e = entries.get(n);
   const schema = e.input && e.input.type === "object" && e.input.properties
-    ? { type: "object", properties: e.input.properties, required: e.input.required || [] }
+    ? { type: "object", properties: propsToTypeName(e.input.properties), required: e.input.required || [] }
     : { type: "object", properties: {}, required: [] };
   out.push(`  ${lit(n)}: ${JSON.stringify(schema)},`);
 }
