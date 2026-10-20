@@ -5,8 +5,10 @@
   で表せる。recentPostTypes（ベクタ）と InboxBuffer（ベクタ・ネスト・nil）
   は guest ABI に無いため oracle（host_surface）側に残す。
   意味の正本は本モジュール（TS 正本: 06e57cf^ の heartbeat-cadence.ts）。"
-  (:export [create-cadence-state
+  (:export [main create-cadence-state
             test-cadence-state-zeros test-cadence-state-fields]))
+
+(defn main [] :i64 0)
 
 (defn create-cadence-state
   "CadenceState の初期状態（TS の createCadenceState の i64 6 フィールド、
