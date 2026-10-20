@@ -3,7 +3,7 @@
   履歴（06e57cf^）からの機械変換を実データで固定する。"
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.edn :as edn]
-            [kotodama.host-model :as m]))
+            [kotodama.host-surface :as m]))
 
 (def data (edn/read-string (slurp "resources/kotodama_host/model_registry.edn")))
 (def registry (:kotodama.host.model/registry data))
