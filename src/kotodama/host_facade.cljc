@@ -11,7 +11,9 @@
   (:require [kotodama.host-util :as host-util]
             [kotodama.host-export :as host-export]
             [kotodama.host-lexicon :as host-lexicon]
-            [kotodama.host-heartbeat :as host-heartbeat]))
+            [kotodama.host-heartbeat :as host-heartbeat]
+            [kotodama.host-cadence :as host-cadence]
+            [kotodama.host-model :as host-model]))
 
 ;; appview 差替え面（docs/appview-replacement-surface.md）
 (def str host-util/str')
@@ -35,6 +37,10 @@
 (def validate-against-schema host-lexicon/validate-against-schema)
 (def create-inbox-buffer host-heartbeat/create-inbox-buffer)
 (def create-cadence-state host-heartbeat/create-cadence-state)
+(def determine-mood host-cadence/determine-mood)
+(def mood-to-cadence host-cadence/mood->cadence)
+(def apply-stress-scaling host-cadence/apply-stress-scaling)
+(def resolve-model-id host-model/resolve-model-id)
 
 (def sdk-package
   "パッケージ名（EDN 権威より）。"
