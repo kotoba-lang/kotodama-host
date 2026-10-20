@@ -83,3 +83,67 @@
               (fn? (get-in w [:w-handler :handle-com-atproto-sync-subscribe-repos-commit]))
               (fn? (get-in w [:serve-handler :handle]))
               (fn? (get-in w [:shinka-handler :on-heartbeat]))))))
+
+;; ---- cadence 判定カーネルの oracle（キーワード版。guest 核 host_cadence の
+;; 双子 —— mood コード対応: 0=joyful 1=calm 2=stressed 3=grateful 4=focused
+;; 5=neutral）。TS 正本は 06e57cf^ の heartbeat-cadence.ts。
+
+(defn determine-mood
+  "Joucho スコアから mood を決める（TS の determineMood と同じ）。
+  stress >= 70 → :stressed。最上位軸スコア < 60 → :neutral。他は最上位軸。"
+  [{:keys [joy calm stress gratitude focus]}]
+  (if (>= stress 70)
+    :stressed
+    (let [axes [[:joyful joy] [:calm calm] [:grateful gratitude] [:focused focus]]
+          [top-mood top-score] (apply max-key second axes)]
+      (if (< top-score 60)
+        :neutral
+        top-mood))))
+
+(defn mood->cadence
+  "mood → クールダウン/有効フラグ表（TS の moodToCadence と同じ 11 フィールド）。
+  :neutral は default 分岐と同じ。"
+  [mood]
+  (case mood
+    :joyful {:post-cooldown-ms 1800000 :analyze-cooldown-ms 10800000
+             :drill-cooldown-ms 14400000 :validate-cooldown-ms 7200000
+             :engage-cooldown-ms 900000 :reward-cooldown-ms 600000
+             :post-enabled true :analyze-enabled true :drill-enabled false
+             :validate-enabled true :engage-enabled true}
+    :calm {:post-cooldown-ms 7200000 :analyze-cooldown-ms 3600000
+           :drill-cooldown-ms 7200000 :validate-cooldown-ms 2700000
+           :engage-cooldown-ms 3600000 :reward-cooldown-ms 1800000
+           :post-enabled true :analyze-enabled true :drill-enabled true
+           :validate-enabled true :engage-enabled true}
+    :stressed {:post-cooldown-ms 21600000 :analyze-cooldown-ms 14400000
+               :drill-cooldown-ms 1800000 :validate-cooldown-ms 3600000
+               :engage-cooldown-ms 10800000 :reward-cooldown-ms 3600000
+               :post-enabled false :analyze-enabled true :drill-enabled true
+               :validate-enabled true :engage-enabled false}
+    :grateful {:post-cooldown-ms 3600000 :analyze-cooldown-ms 7200000
+               :drill-cooldown-ms 10800000 :validate-cooldown-ms 7200000
+               :engage-cooldown-ms 600000 :reward-cooldown-ms 300000
+               :post-enabled true :analyze-enabled true :drill-enabled false
+               :validate-enabled true :engage-enabled true}
+    :focused {:post-cooldown-ms 10800000 :analyze-cooldown-ms 2700000
+              :drill-cooldown-ms 3600000 :validate-cooldown-ms 1800000
+              :engage-cooldown-ms 7200000 :reward-cooldown-ms 3600000
+              :post-enabled true :analyze-enabled true :drill-enabled true
+              :validate-enabled true :engage-enabled false}
+    ;; :neutral / default
+    {:post-cooldown-ms 7200000 :analyze-cooldown-ms 10800000
+     :drill-cooldown-ms 7200000 :validate-cooldown-ms 5400000
+     :engage-cooldown-ms 3600000 :reward-cooldown-ms 1800000
+     :post-enabled true :analyze-enabled true :drill-enabled true
+     :validate-enabled true :engage-enabled true}))
+
+(defn apply-stress-scaling
+  "stress >= 50 なら post/engage のクールダウンを拡大する（TS と同じ）。
+  scale = 1.0 + (stress - 50) / 50、Math.round 相当。"
+  [cadence stress]
+  (if (< stress 50)
+    cadence
+    (let [scale (+ 1.0 (/ (- stress 50) 50.0))]
+      (-> cadence
+          (update :post-cooldown-ms #(js/Math.round (* % scale)))
+          (update :engage-cooldown-ms #(js/Math.round (* % scale)))))))
