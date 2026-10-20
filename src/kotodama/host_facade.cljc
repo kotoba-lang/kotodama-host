@@ -5,8 +5,17 @@
 
 (ns kotodama.host-facade
   "kotodama.host SDK facade（生成物）。operations の単一権威は
-  resources/kotodama_host/sdk_facade.edn。ここはその生成物。"
-  (:require [clojure.string :as str]))
+  resources/kotodama_host/sdk_facade.edn。ここはその生成物。
+  appview 差替え面のユーティリティもここで公開する。"
+  (:refer-clojure :exclude [str])
+  (:require [kotodama.host-util :as host-util]))
+
+;; appview 差替え面（docs/appview-replacement-surface.md）
+(def str host-util/str')
+(def now-iso host-util/now-iso)
+(def nsid host-util/nsid)
+(def gen-id host-util/gen-id)
+(def decode-json host-util/decode-json)
 
 (def sdk-package
   "パッケージ名（EDN 権威より）。"
