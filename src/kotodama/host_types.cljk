@@ -1,0 +1,59 @@
+(ns kotodama.host-types
+  "差替え面の型 3 つの kotoba 対応物（JUN-133 スライス⑧）。
+  型の正本は prune 前の TS 実装（06e57cf^ の types.ts / index.ts）。ここでは
+  その形状を fail-closed な述語として確定する（検証は appview の入口で使う）。
+  キーは kotoba の語彙（kebab）。フィールド意味は TS と同一。")
+
+(defn- str+ [v] (and (string? v) (not (empty? v))))
+(defn- str-or-nil? [v] (or (nil? v) (string? v)))
+
+(defn com-atproto-sync-subscribe-repos-commit?
+  "ComAtprotoSyncSubscribeReposCommit（TS の型と同一形状）:
+  {:seq bigint/int :repo :collection :rkey :action :time 文字列、
+   :cid :rev は文字列か nil}。seq は 0 以上の整数。"
+  [m]
+  (and (map? m)
+       (contains? m :seq)
+       (let [s (:seq m)]
+         (and (integer? s) (not (neg? s))))
+       (str+ (:repo m))
+       (str+ (:collection m))
+       (str+ (:rkey m))
+       (str+ (:action m))
+       (str+ (:time m))
+       (str-or-nil? (:cid m))
+       (str-or-nil? (:rev m))))
+
+(defn agent-config?
+  "AgentConfig: {:system-prompt str :model str}（両方必須）。"
+  [m]
+  (and (map? m) (str+ (:system-prompt m)) (str+ (:model m))))
+
+(defn app-def?
+  "AppDef（TS と同一形状）: {:id str :name str
+  :description? str :agent? AgentConfig}。"
+  [m]
+  (and (map? m)
+       (str+ (:id m))
+       (str+ (:name m))
+       (or (not (contains? m :description)) (str-or-nil? (:description m)))
+       (or (not (contains? m :agent)) (nil? (:agent m)) (agent-config? (:agent m)))))
+
+(defn host-sdk?
+  "HostSDK ハンドル（TS のインターフェースと同一の必須キー）:
+  {:app :env :host-imports :pds :router :handle-request :wit-exports}。
+  wit-exports は {:http-handler :w-handler :serve-handler :shinka-handler}
+  を持つ。:handle-request と各 handler は実関数（IFn ではない）。"
+  [m]
+  (and (map? m)
+       (every? #(contains? m %)
+               [:app :env :host-imports :pds :router :handle-request :wit-exports])
+       (fn? (:handle-request m))
+       (let [w (:wit-exports m)]
+         (and (map? w)
+              (every? #(contains? w %)
+                      [:http-handler :w-handler :serve-handler :shinka-handler])
+              (fn? (get-in w [:http-handler :handle]))
+              (fn? (get-in w [:w-handler :handle-com-atproto-sync-subscribe-repos-commit]))
+              (fn? (get-in w [:serve-handler :handle]))
+              (fn? (get-in w [:shinka-handler :on-heartbeat]))))))
