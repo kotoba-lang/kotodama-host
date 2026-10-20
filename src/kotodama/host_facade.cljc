@@ -13,7 +13,8 @@
             [kotodama.host-lexicon :as host-lexicon]
             [kotodama.host-heartbeat :as host-heartbeat]
             [kotodama.host-cadence :as host-cadence]
-            [kotodama.host-model :as host-model]))
+            [kotodama.host-model :as host-model]
+            [kotodama.host-types :as host-types]))
 
 ;; appview 差替え面（docs/appview-replacement-surface.md）
 (def str host-util/str')
@@ -41,6 +42,14 @@
 (def mood-to-cadence host-cadence/mood->cadence)
 (def apply-stress-scaling host-cadence/apply-stress-scaling)
 (def resolve-model-id host-model/resolve-model-id)
+
+;; 型 3 つ（HostSDK / AppDef / ComAtprotoSyncSubscribeReposCommit の
+;; 形状述語。正本は prune 前の types.ts）
+(def com-atproto-sync-subscribe-repos-commit?
+  host-types/com-atproto-sync-subscribe-repos-commit?)
+(def app-def? host-types/app-def?)
+(def agent-config? host-types/agent-config?)
+(def host-sdk? host-types/host-sdk?)
 
 (def sdk-package
   "パッケージ名（EDN 権威より）。"
