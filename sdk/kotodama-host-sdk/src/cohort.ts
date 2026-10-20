@@ -16,7 +16,7 @@ export interface CohortSegment {
   pcfL1: string;
   role: string;
   industry: string | null;
-  seniority: string | null;
+  seniority?: string | null;
   locale: string;
 }
 
@@ -39,7 +39,7 @@ export function parseSegmentHash(segmentHash: string): CohortSegment | null {
     pcfL1,
     role,
     industry: kv.industry ?? null,
-    seniority: kv.seniority ?? null,
+    ...(kv.seniority != null ? { seniority: kv.seniority } : {}),
     locale,
   };
 }
