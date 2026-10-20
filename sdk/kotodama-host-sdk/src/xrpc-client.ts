@@ -144,6 +144,21 @@ export class XrpcClient {
     event: { type: string; payload?: unknown },
     opts?: { awaitResult?: boolean }
   ): Promise<unknown> | void {
+    // 旧 internal registration は dispatch に残っていてもスキップする（契約:
+    // test/xrpc-client "skips legacy internal registration nsids even from
+    // dispatch entries"）。identity/capability/agent-tools の登録系は
+    // governance.registerManifest に一本化済みで、送信してはならない。
+    const LEGACY_REGISTRATION = new Set([
+      "identity-register",
+      "capability-declare",
+      "agent-register-tools",
+      "com.etzhayyim.identity.register",
+      "com.etzhayyim.capability.declare",
+      "com.etzhayyim.agent.registerTools",
+    ]);
+    if (LEGACY_REGISTRATION.has(event.type)) {
+      return opts?.awaitResult ? Promise.resolve(null) : undefined;
+    }
     const writeId = generateWriteId(event.type);
     // AT Protocol NSID types (e.g. "com.atproto.repo.createRecord", "app.bsky.feed.post")
     // bypass the generated dispatch table and go directly to XRPC.

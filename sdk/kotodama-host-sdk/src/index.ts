@@ -84,7 +84,11 @@ async function resolveSecret(v: unknown): Promise<string> {
   return String(v);
 }
 
-function asBodyInit(bytes: Uint8Array): ArrayBuffer {
+function asBodyInit(bytes: Uint8Array | string | null | undefined): ArrayBuffer | string | undefined {
+  // 契約（test/xrpc-handler end-to-end）: body の無いリクエストも通す。
+  // null / undefined は body 無し、文字列はそのまま、TypedArray はバッファ化。
+  if (bytes == null) return undefined;
+  if (typeof bytes === "string") return bytes;
   return Uint8Array.from(bytes).buffer;
 }
 
