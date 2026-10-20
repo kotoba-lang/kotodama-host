@@ -1,0 +1,28 @@
+(ns kotodama.host-surface
+  "appview 差替え面の自由型ユーティリティ（JUN-149: kbb / ホスト側表面）。
+  guest 核（host_util、typed）は kbb から読めないため、判定は
+  **oracle/guest の双子**（bounded_text 流儀: host 側の oracle が意味を担保し、
+  guest 側が同じベクタで amu test される）。amu 適格化の対象外。"
+  #?(:default (:require [clojure.string :as cstr])))
+
+(defn str'
+  "文字列への中立な変換。文字列以外は空文字（appview 側の str ヘルパと同じ
+  意味: 'typeof v === string ? v : empty'）。"
+  [v]
+  (if (string? v) v ""))
+
+(defn- full-match? [pattern text]
+  (boolean (re-matches (re-pattern pattern) text)))
+
+(defn nsid
+  "NSID 形の検証。妥当なら文字列をそのまま返し、不正なら nil。
+  （appview の validate 用途。判定は guest 核 host_util/nsid-valid? の
+  oracle と同じベクタで検証される。）"
+  [v]
+  (when (string? v)
+    (let [parts (cstr/split v #"\.")]
+      (when (and (>= (count parts) 2)
+                 (<= (count v) 253)
+                 (every? #(full-match? "[a-z][a-z0-9-]{0,62}" %) (butlast parts))
+                 (full-match? "[a-zA-Z][a-zA-Z0-9]*" (last parts)))
+        v))))

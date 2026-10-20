@@ -3,7 +3,7 @@
   asAgentTool / withCapabilityTags の kotoba 側）。TS SDK は prune 済みのため
   意味はここで定義する。appview の使用形（builder.command(nsid, handler,
   asAgentTool(desc), withCapabilityTags(...tags))）に対応する純粋な登録 API。"
-  (:require [kotodama.host-util :as u]))
+  (:require [kotodama.host-surface :as surface]))
 
 (defn as-agent-tool
   "ツール宣言（説明文字列 1 つ）。不正なら nil（fail closed）。"
@@ -33,7 +33,7 @@
   [registry name handler tool-spec tag-spec]
   (when-not (= :registry (:kotodama.host.export/type registry))
     (throw (ex-info "command: registry ではない" {:registry registry})))
-  (when-not (u/nsid name)
+  (when-not (surface/nsid name)
     (throw (ex-info "command: name は NSID 形である必要がある" {:name name})))
   ;; handler は関数（キーワード等の IFn は不可 — ifn? で通さない）
   (when-not (fn? handler)
