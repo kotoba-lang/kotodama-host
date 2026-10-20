@@ -1,0 +1,54 @@
+{
+  "//": "Host capability lexicon 形状 pin（JUN-133 item 2）。host capability の lexicon JSON はローカルに無く（etzhayyim root monorepo 由来）、host-client.ts の NSID 定数と契約テストの形状期待から pin する。上流 lexicon が入手できたらこの pin は codegen の自動出力に置き換わる。",
+  "lexicons": [
+    {
+      "id": "com.etzhayyim.host.secrets.get",
+      "type": "query",
+      "input": {"key": "string"},
+      "inputRequired": ["key"],
+      "output": {"value": "string?", "found": "boolean"}
+    },
+    {
+      "id": "com.etzhayyim.host.secrets.set",
+      "type": "procedure",
+      "input": {"key": "string", "value": "string"},
+      "inputRequired": ["key", "value"],
+      "output": {}
+    },
+    {
+      "id": "com.etzhayyim.host.secrets.delete",
+      "type": "procedure",
+      "input": {"key": "string"},
+      "inputRequired": ["key"],
+      "output": {}
+    },
+    {
+      "id": "com.etzhayyim.host.invoke.call",
+      "type": "procedure",
+      "input": {"target": "string", "payload": "string"},
+      "inputRequired": ["target", "payload"],
+      "output": {"result": "string?"}
+    },
+    {
+      "id": "com.etzhayyim.host.llm.converse",
+      "type": "query",
+      "input": {"prompt": "string", "model": "string?"},
+      "inputRequired": ["prompt"],
+      "output": {"text": "string", "model": "string"}
+    },
+    {
+      "id": "com.etzhayyim.host.core.logAppend",
+      "type": "query",
+      "input": {"stream": "string", "payload": "string"},
+      "inputRequired": ["stream", "payload"],
+      "output": {"offset": "number"}
+    },
+    {
+      "id": "com.etzhayyim.governance.registerManifest",
+      "type": "procedure",
+      "input": {"manifest": "string"},
+      "inputRequired": ["manifest"],
+      "output": {"actorId": "string"}
+    }
+  ]
+}
