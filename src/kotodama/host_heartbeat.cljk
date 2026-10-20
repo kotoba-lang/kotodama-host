@@ -1,0 +1,22 @@
+(ns kotodama.host-heartbeat
+  "heartbeat 系の kotoba 版（JUN-133 スライス④）。意味の基準は prune 前の
+  TS 実装（sdk/kotodama-host-sdk/src/heartbeat-cadence.ts at 06e57cf^）。")
+
+(defn create-inbox-buffer
+  "InboxBuffer の初期状態（TS の createInboxBuffer と同じ構造）。"
+  []
+  {:inbound-commits []
+   :reactions []
+   :prev-joucho nil
+   :follower-snapshots {}})
+
+(defn create-cadence-state
+  "CadenceState の初期状態（TS の createCadenceState と同じ 7 フィールド）。"
+  []
+  {:last-post-at 0
+   :last-analyze-at 0
+   :last-drill-at 0
+   :last-validate-at 0
+   :last-engage-at 0
+   :last-reward-at 0
+   :recent-post-types []})

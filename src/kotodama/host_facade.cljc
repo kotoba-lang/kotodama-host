@@ -9,7 +9,9 @@
   appview 差替え面のユーティリティもここで公開する。"
   (:refer-clojure :exclude [str])
   (:require [kotodama.host-util :as host-util]
-            [kotodama.host-export :as host-export]))
+            [kotodama.host-export :as host-export]
+            [kotodama.host-lexicon :as host-lexicon]
+            [kotodama.host-heartbeat :as host-heartbeat]))
 
 ;; appview 差替え面（docs/appview-replacement-surface.md）
 (def str host-util/str')
@@ -25,6 +27,14 @@
 (def create-worker-export host-export/create-worker-export)
 (def command host-export/command)
 (def empty-registry host-export/empty-registry)
+
+;; lexicon / heartbeat 系（appview の parseLexiconInput /
+;; createInboxBuffer / createCadenceState 対応）
+(def parse-lexicon-input host-lexicon/parse-lexicon-input)
+(def try-parse-lexicon-input host-lexicon/try-parse-lexicon-input)
+(def validate-against-schema host-lexicon/validate-against-schema)
+(def create-inbox-buffer host-heartbeat/create-inbox-buffer)
+(def create-cadence-state host-heartbeat/create-cadence-state)
 
 (def sdk-package
   "パッケージ名（EDN 権威より）。"
