@@ -8,7 +8,8 @@
   resources/kotodama_host/sdk_facade.edn。ここはその生成物。
   appview 差替え面のユーティリティもここで公開する。"
   (:refer-clojure :exclude [str])
-  (:require [kotodama.host-util :as host-util]
+  (:require [kotodama.host-surface :as host-surface]
+            [kotodama.host-effects :as host-effects]
             [kotodama.host-export :as host-export]
             [kotodama.host-lexicon :as host-lexicon]
             [kotodama.host-heartbeat :as host-heartbeat]
@@ -17,11 +18,11 @@
             [kotodama.host-types :as host-types]))
 
 ;; appview 差替え面（docs/appview-replacement-surface.md）
-(def str host-util/str')
-(def now-iso host-util/now-iso)
-(def nsid host-util/nsid)
-(def gen-id host-util/gen-id)
-(def decode-json host-util/decode-json)
+(def str host-surface/str')
+(def now-iso host-effects/now-iso)
+(def nsid host-surface/nsid)
+(def gen-id host-effects/gen-id)
+(def decode-json host-effects/decode-json)
 
 ;; Worker/export 系（appview の createWorkerExport / asAgentTool /
 ;; withCapabilityTags 対応の純粋な登録 API）

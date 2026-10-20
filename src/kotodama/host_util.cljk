@@ -1,58 +1,94 @@
 (ns kotodama.host-util
-  "appview 差替え面のユーティリティ群（JUN-133: TS SDK prune 後の kotoba 側）。
-  棚卸し（docs/appview-replacement-surface.md）の和集合のうち
-  nowISO / nsid / genID / str / decodeJson を kotoba の語彙に落とす。
-  TS SDK は prune 済みのため、意味はここで定義する（正本は本モジュール）。"
-  #?(:cljs (:require [clojure.string :as str])))
+  "appview 差替え面のユーティリティ guest 核（JUN-149: amu 適格化）。
+  typed guest 覇約（型注釈必須・host interop 禁止・:kotoba 専用）。
+  NSID 検証は bounded-regex を使わず **文字コードの歩き**で実装する
+  （bounded-regex は `{}` 量詞を拒否し、class+`*` で trap した —— 実測）。
+  kbb 側の oracle は host_surface.cljk（同一ベクタで両方を検証する双子）。
+  効果は host_effects.cljk 側。意味の正本は本モジュール（TS SDK は prune 済み）。"
+  (:require #?(:kotoba [kotoba.lang.bounded-text :as bounded-text]))
+  (:export [nsid-valid? test-nsid-valid test-nsid-length-limits]))
 
-(defn str'
-  "文字列への中立な変換。文字列以外は空文字（appview 側の str ヘルパと同じ
-  意味: 'typeof v === string ? v : empty'）。"
-  [v]
-  (if (string? v) v ""))
+(defn- lower-alpha? [c :i64] :bool
+  (and (>= c 97) (<= c 122)))
 
-(defn now-iso
-  "現在時刻の ISO 8601（UTC、ミリ秒 3 桁、Z 付き）。例:
-  \"2026-10-20T09:15:00.000Z\"。"
-  []
-  #?(:cljs (.toISOString (js/Date.))
-     :clj (str (.format (.withZone java.time.Instant/now
-                                  java.time.ZoneOffset/UTC)
-                        (java.time.format.DateTimeFormatter/ofPattern
-                         "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")))))
+(defn- upper-alpha? [c :i64] :bool
+  (and (>= c 65) (<= c 90)))
 
-(def ^:private nsid-label-re
-  #"[a-z][a-z0-9-]{0,62}")
-(def ^:private nsid-name-re
-  #"[a-zA-Z][a-zA-Z0-9]*")
+(defn- digit? [c :i64] :bool
+  (and (>= c 48) (<= c 57)))
 
-(defn nsid
-  "NSID 形の検証。authority ラベル（小文字、先頭は英字）+ name（英字始まり
-  英数字）。合計 3〜253 文字。文字列をそのまま返し、不正なら nil。
-  （ATProto NSID の形。appview は validate 用途で使う。）"
-  [v]
-  (when (string? v)
-    (let [parts #?(:cljs (str/split v ".") :clj (clojure.string/split v #"\."))]
-      (when (and (>= (count parts) 2)
-                 (<= (count v) 253)
-                 (every? #(re-matches nsid-label-re %) (butlast parts))
-                 (re-matches nsid-name-re (last parts)))
-        v))))
+(defn- label-rest-char? [c :i64] :bool
+  ;; [a-z0-9-]（or は 2 引数ずつ畳む —— 実測で多引数論理式は fuel を喰う）
+  (or (lower-alpha? c) (or (digit? c) (= c 45))))
 
-(defn gen-id
-  "ユニーク ID（UUID 文字列）。実行環境の乱数に依存するため決定的ではない。"
-  []
-  #?(:cljs (str (random-uuid))
-     :clj (str (java.util.UUID/randomUUID))))
+(defn- name-rest-char? [c :i64] :bool
+  ;; [a-zA-Z0-9]
+  (or (lower-alpha? c) (or (upper-alpha? c) (digit? c))))
 
-(defn decode-json
-  "JSON 文字列をデータへ。キーは文字列のまま。不正なら nil。
-  実行面（amu selfhost / JS）では js/JSON、JVM では clojure.data.json 非依存
-  のため未サポート（:jvm-unsupported を投げる）。"
-  [s]
-  (when (string? s)
-    #?(:cljs (try
-               (js->clj (js/JSON.parse s))
-               (catch :default _ nil))
-       :clj (throw (ex-info "decode-json is JS-runtime only (amu selfhost)"
-                            {:jvm-unsupported true})))))
+(defn- label-chars-ok? [s :string i :i64] :bool
+  (if (>= i (string-byte-length s))
+    true
+    (if (label-rest-char? (string-code-point-at s i))
+      (label-chars-ok? s (+ i 1))
+      false)))
+
+(defn- name-chars-ok? [s :string i :i64] :bool
+  (if (>= i (string-byte-length s))
+    true
+    (if (name-rest-char? (string-code-point-at s i))
+      (name-chars-ok? s (+ i 1))
+      false)))
+
+(defn- label-ok? [s :string] :bool
+  ;; [a-z][a-z0-9-]{0,62}: 先頭小文字英字、残りは小文字英数字と -、長さ 63 まで。
+  (and (>= (string-byte-length s) 1)
+       (and (<= (string-byte-length s) 63)
+            (and (lower-alpha? (string-code-point-at s 0))
+                 (label-chars-ok? s 1)))))
+
+(defn- name-ok? [s :string] :bool
+  ;; [a-zA-Z][a-zA-Z0-9]*: 先頭英字、残りは英数字。
+  (and (>= (string-byte-length s) 1)
+       (and (or (lower-alpha? (string-code-point-at s 0))
+                (upper-alpha? (string-code-point-at s 0)))
+            (name-chars-ok? s 1))))
+
+(defn- labels-ok? [v :string sep :string i :i64] :bool
+  ;; index i（0-based）以下のラベルを全部検証する。
+  (if (< i 0)
+    true
+    (if (label-ok? (bounded-text/segment-text v sep i))
+      (labels-ok? v sep (- i 1))
+      false)))
+
+(defn nsid-valid?
+  "NSID 形の検証（ATProto 形）。authority ラベル（小文字・先頭は英字・各 63
+  文字まで）+ name（英字始まり英数字）。ラベル 2 つ以上・全長 253 以内。
+  妥当なら true、不正なら false（fail closed）。"
+  [v :string] :bool
+  (let [sep "."
+        n (bounded-text/segment-count-text v sep)]
+    (and (>= n 2)
+         (and (<= (string-byte-length v) 253)
+              (and (labels-ok? v sep (- n 2))
+                   (name-ok? (bounded-text/segment-text v sep (- n 1))))))))
+
+;; ---- amu test（guest 覇約: ゼロ引数 test-*、戻り注釈 :i64、1/0）----
+
+(defn test-nsid-valid [] :i64
+  ;; and は 2 引数ずつ畳む（多引数 and は guest 実行で fuel/trap した —— 実測）。
+  (if (and (nsid-valid? "com.example.doThing")
+           (and (nsid-valid? "app.bsky.feed.getPosts")
+                (and (not (nsid-valid? "no-dots"))
+                     (and (not (nsid-valid? "com.example.0bad"))
+                          (and (not (nsid-valid? "Com.example.doThing"))
+                               (not (nsid-valid? "com..doThing")))))))
+    1 0))
+
+(defn test-nsid-length-limits [] :i64
+  (let [long-label (bounded-text/repeat-text "a" 64)
+        many (bounded-text/repeat-text "aaaaaaaaaa." 30)
+        over (str "com." many "x")]
+    (if (and (not (nsid-valid? (str "com." long-label ".x")))
+             (not (nsid-valid? over)))
+      1 0)))
