@@ -1,8 +1,8 @@
 #:kotodama.host.sdk{:package "@etzhayyim/kotoba-kotodama-host-sdk",
                     :authority [:kotoba-clj :edn],
                     :facade :cljc-generated,
-                    :generated "src/host-contract.cljc",
-                    :runtime-entry "src/host-contract.cljc",
+                    :generated "src/kotodama/host_facade.cljc",
+                    :runtime-entry "src/kotodama/host_facade.cljc",
                     :operations
                     [#:kotodama.host.sdk{:name :create-host-sdk,
                                          :request

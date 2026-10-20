@@ -1,0 +1,55 @@
+(ns kotodama.host-facade-gen
+  "CLJC facade 生成器（JUN-133: sdk_facade.edn → host_facade.cljc）。
+  純粋関数のみ。EDN 権威 1 本から生成物を決め、生成物ヘッダに provenance を
+  残す（lexicon codegen と同じ流儀）。"
+  (:require [clojure.string :as str]))
+
+(def generated-ns "kotodama.host-facade")
+(def generated-path "src/kotodama/host_facade.cljc")
+
+(defn- op-field [op k]
+  (or (get op (keyword "kotodama.host.sdk" (name k)))
+      (get op k)))
+
+(defn- emit-op [op]
+  (str "  {"
+       ":name " (pr-str (op-field op :name))
+       " :request " (pr-str (op-field op :request))
+       " :response " (pr-str (op-field op :response))
+       " :component-export " (pr-str (op-field op :component-export))
+       "}"))
+
+(defn generate-facade
+  "sdk_facade.edn のマップから host_facade.cljc のソース文字列を返す。"
+  [facade]
+  (let [pkg (get facade (keyword "kotodama.host.sdk" "package"))
+        authority (get facade (keyword "kotodama.host.sdk" "authority"))
+        ops (get facade (keyword "kotodama.host.sdk" "operations"))]
+    (str ";; " generated-ns " — GENERATED FILE. DO NOT EDIT.\n"
+         ";; 生成器: scripts/gen-sdk-facade.cljk\n"
+         ";; 権威: resources/kotodama_host/sdk_facade.edn\n"
+         ";; 生成時刻は provenance に含めない（決定的な出力にするため）。\n\n"
+         "(ns " generated-ns "\n"
+         "  \"kotodama.host SDK facade（生成物）。operations の単一権威は\n"
+         "  resources/kotodama_host/sdk_facade.edn。ここはその生成物。\"\n"
+         "  (:require [clojure.string :as str]))\n\n"
+         "(def sdk-package\n"
+         "  \"パッケージ名（EDN 権威より）。\"\n"
+         "  " (pr-str pkg) ")\n\n"
+         "(def sdk-authority\n"
+         "  \"権威の形式。\"\n"
+         "  " (pr-str authority) ")\n\n"
+         "(def sdk-operations\n"
+         "  \"公開 operations: name/request/response/component-export。\"\n"
+         "  [\n"
+         (str/join "\n" (map emit-op ops))
+         "])\n\n"
+         "(def operation-names\n"
+         "  (mapv :name sdk-operations))\n\n"
+         "(defn find-operation\n"
+         "  \"operation 名（キーワード）から宣言を引く。無ければ nil。\"\n"
+         "  [op-name]\n"
+         "  (some (fn [op] (when (= op-name (:name op)) op)) sdk-operations))\n\n"
+         "(defn operation?\n"
+         "  [op-name]\n"
+         "  (some? (find-operation op-name)))\n")))
