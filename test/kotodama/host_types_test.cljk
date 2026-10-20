@@ -1,7 +1,7 @@
 (ns kotodama.host-types-test
   "型 3 つのテスト（JUN-133 スライス⑧）。TS 正本（06e57cf^）の形状を固定。"
   (:require [clojure.test :refer [deftest is testing]]
-            [kotodama.host-types :as t]))
+            [kotodama.host-surface :as t]))
 
 (def commit
   {:seq 42 :repo "did:plc:abc" :collection "app.bsky.feed.post"
