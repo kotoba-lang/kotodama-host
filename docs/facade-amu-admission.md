@@ -37,6 +37,22 @@ kbb テスト（9 ランナー・173 assertions）は全て緑 —— **意味�
 5. 構造化返り値: マップ literal の汎用値は拒否されるため、**ベクタ・
    スカラー・キーワード・文字列（EDN/JSON 文字列化）**の語彙に寄せる。
 
+## 適格化の進捗（2026-10-20 実測）
+
+| モジュール | 結果 | 備考 |
+|---|---|---|
+| host_util | **適格**（amu test 24/24） | NSID は文字コード歩き。効果 3 つは host_effects へ |
+| host_types | **適格**（33/33） | typed map フィールド検証。HostSDK 形は oracle 専用 |
+| host_cadence | **適格**（30/30） | mood コード + 整数 round |
+| host_model | **適格**（18/18） | レジストリ走査は oracle 残置、判定核のみ guest |
+| host_lexicon | **適格**（24/24） | スキーマ走査・JSON デコードは oracle 残置 |
+| host_heartbeat | **適格**（6/6） | CadenceState の i64 6 フィールドのみ guest。InboxBuffer / recentPostTypes ベクタは oracle |
+| host_export | **guest 対象外**（確定） | レジストリが関数値（handler）を持つため guest ABI で表せない。host が構築し guest は判定核を呼ぶ |
+
+guest で判明した制約（pitfall）: 多引数 and の詰め込みは fuel/trap / `:export` は public のみ /
+`[:vec :string]` パラメータは safe profile 外 / `contains?` は canonical typed map のみ /
+docstring の引用符はエスケープ必須 / `#"..."` と `{}` 量詞は bounded-regex でも拒否。
+
 ## 残スライス（1 run = 1 モジュール）
 
 1. host_util: regex → bounded-regex、効果 2 つを host 側へ分離。

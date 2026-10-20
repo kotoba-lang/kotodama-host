@@ -11,7 +11,6 @@
   (:require [kotodama.host-surface :as host-surface]
             [kotodama.host-effects :as host-effects]
             [kotodama.host-export :as host-export]
-            [kotodama.host-heartbeat :as host-heartbeat]
             ))
 
 ;; appview 差替え面（docs/appview-replacement-surface.md）
@@ -34,8 +33,8 @@
 (def parse-lexicon-input host-surface/parse-lexicon-input)
 (def try-parse-lexicon-input host-surface/try-parse-lexicon-input)
 (def validate-against-schema host-surface/validate-against-schema)
-(def create-inbox-buffer host-heartbeat/create-inbox-buffer)
-(def create-cadence-state host-heartbeat/create-cadence-state)
+(def create-inbox-buffer host-surface/create-inbox-buffer)
+(def create-cadence-state host-surface/create-cadence-state)
 (def determine-mood host-surface/determine-mood)
 (def mood-to-cadence host-surface/mood->cadence)
 (def apply-stress-scaling host-surface/apply-stress-scaling)

@@ -38,7 +38,7 @@
          "            [kotodama.host-effects :as host-effects]\n"
          "            [kotodama.host-export :as host-export]\n"
 
-         "            [kotodama.host-heartbeat :as host-heartbeat]\n"
+
 
 
          "            ))\n\n"
@@ -60,8 +60,8 @@
          "(def parse-lexicon-input host-surface/parse-lexicon-input)\n"
          "(def try-parse-lexicon-input host-surface/try-parse-lexicon-input)\n"
          "(def validate-against-schema host-surface/validate-against-schema)\n"
-         "(def create-inbox-buffer host-heartbeat/create-inbox-buffer)\n"
-         "(def create-cadence-state host-heartbeat/create-cadence-state)\n"
+         "(def create-inbox-buffer host-surface/create-inbox-buffer)\n"
+         "(def create-cadence-state host-surface/create-cadence-state)\n"
          "(def determine-mood host-surface/determine-mood)\n"
          "(def mood-to-cadence host-surface/mood->cadence)\n"
          "(def apply-stress-scaling host-surface/apply-stress-scaling)\n"
